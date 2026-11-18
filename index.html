@@ -1,0 +1,245 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZEAD - Study Planner</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #eef1f6;
+  color: #172b46;
+}
+
+header {
+  background: #172b46;
+  color: white;
+  text-align: center;
+  padding: 35px 15px;
+  border-radius: 0 0 28px 28px;
+}
+
+header h1 {
+  font-size: 36px;
+  letter-spacing: 5px;
+}
+
+header p {
+  color: #bdcce0;
+  letter-spacing: 3px;
+}
+
+main {
+  max-width: 650px;
+  margin: auto;
+  padding: 20px;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.day {
+  padding: 17px;
+  border: none;
+  border-radius: 12px;
+  background: white;
+  color: #172b46;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.day.active {
+  background: #244c7a;
+  color: white;
+}
+
+.card {
+  background: white;
+  margin-top: 22px;
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: 0 5px 20px #172b4610;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.task.done span {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.add-box {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+input[type="text"] {
+  min-width: 0;
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 9px;
+}
+
+button {
+  cursor: pointer;
+}
+
+#addBtn {
+  background: #244c7a;
+  color: white;
+  border: none;
+  border-radius: 9px;
+  padding: 12px;
+}
+
+.footer {
+  text-align: center;
+  color: gray;
+  margin-top: 30px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>ZEAD</h1>
+  <p>MY STUDY PLANNER</p>
+  <h2>خطط لمستقبلك 📚</h2>
+</header>
+
+<main>
+  <h2>جدول الأسبوع</h2>
+  <div class="days" id="days"></div>
+
+  <section class="card">
+    <h2 id="dayTitle">مذاكرة يوم السبت</h2>
+    <div id="tasks"></div>
+
+    <div class="add-box">
+      <input type="text" id="taskInput"
+      placeholder="اكتب مادة المذاكرة">
+
+      <button id="addBtn">إضافة +</button>
+    </div>
+  </section>
+
+  <p class="footer">ZEAD © 2026</p>
+</main>
+
+<script>
+const days = [
+  "السبت", "الأحد", "الإثنين",
+  "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"
+];
+
+let selectedDay = "السبت";
+
+let tasks = JSON.parse(
+  localStorage.getItem("zeadTasks") || "{}"
+);
+
+days.forEach(day => {
+  if (!tasks[day]) tasks[day] = [];
+});
+
+const daysBox = document.getElementById("days");
+
+days.forEach(day => {
+  const btn = document.createElement("button");
+  btn.textContent = day;
+  btn.className = "day";
+  btn.onclick = () => selectDay(day);
+  daysBox.appendChild(btn);
+});
+
+function save() {
+  localStorage.setItem(
+    "zeadTasks",
+    JSON.stringify(tasks)
+  );
+}
+
+function selectDay(day) {
+  selectedDay = day;
+
+  document.getElementById("dayTitle").textContent =
+    "مذاكرة يوم " + day;
+
+  document.querySelectorAll(".day").forEach(btn => {
+    btn.classList.toggle(
+      "active",
+      btn.textContent === day
+    );
+  });
+
+  showTasks();
+}
+
+function showTasks() {
+  const box = document.getElementById("tasks");
+  box.innerHTML = "";
+
+  tasks[selectedDay].forEach(task => {
+    const div = document.createElement("div");
+    div.className = task.done ? "task done" : "task";
+
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.checked = task.done;
+
+    check.onchange = () => {
+      task.done = check.checked;
+      save();
+      showTasks();
+    };
+
+    const span = document.createElement("span");
+    span.textContent = task.name;
+
+    div.append(check, span);
+    box.appendChild(div);
+  });
+}
+
+function addTask() {
+  const input = document.getElementById("taskInput");
+  const value = input.value.trim();
+
+  if (!value) return;
+
+  tasks[selectedDay].push({
+    name: value,
+    done: false
+  });
+
+  input.value = "";
+  save();
+  showTasks();
+}
+
+document.getElementById("addBtn").onclick = addTask;
+
+selectDay("السبت");
+</script>
+
+</body>
+</html>
